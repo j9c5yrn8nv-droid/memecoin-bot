@@ -14,6 +14,17 @@
   "top10": 10.0,
   "insider": 0,
   "lock": 100,
-  "cp": {}
+  "cp": {
+   "15m": {
+    "ratio": 0.0088,
+    "liq": 2395.72,
+    "rugged": true
+   },
+   "1h": {
+    "ratio": 0.0088,
+    "liq": 2395.72,
+    "rugged": true
+   }
+  }
  }
 ]
