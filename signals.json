@@ -49,5 +49,22 @@
     "rugged": false
    }
   }
+ },
+ {
+  "mint": "28eGKk7GabX9m21A86ZeeqndeoWBi3bCYjf8moF3pump",
+  "symbol": "ChaCha",
+  "name": "Justice for ChaCha",
+  "headline": "As Election Nears, Reports of an Increase in ICE Arrests Across California",
+  "t": 1793136567.0405169,
+  "entry": 2.536e-05,
+  "entry_liq": 11667.39,
+  "celeb": false,
+  "age_min": 45,
+  "h1": -44.01,
+  "top1": 28.1,
+  "top10": 54.7,
+  "insider": 0,
+  "lock": 100,
+  "cp": {}
  }
 ]
