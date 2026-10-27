@@ -52,6 +52,11 @@
     "ratio": 1.0531,
     "liq": 15899.14,
     "rugged": false
+   },
+   "1h": {
+    "ratio": 0.3751,
+    "liq": 8757.52,
+    "rugged": false
    }
   }
  },
