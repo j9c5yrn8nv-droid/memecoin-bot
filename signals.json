@@ -26,5 +26,22 @@
     "rugged": true
    }
   }
+ },
+ {
+  "mint": "JDzUd2tcvsijFkjZNEChkxvPAzK5kJpsWBuEAEmopump",
+  "symbol": "mini ",
+  "name": "mini cat ",
+  "headline": "Kyler Murray \u2018still acclimating\u2019 to MIN offense",
+  "t": 1793134990.1325336,
+  "entry": 4.071e-05,
+  "entry_liq": 15398.1,
+  "celeb": false,
+  "age_min": 35,
+  "h1": -4.84,
+  "top1": 21.4,
+  "top10": 43.7,
+  "insider": 0,
+  "lock": 100,
+  "cp": {}
  }
 ]
