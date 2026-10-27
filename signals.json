@@ -87,5 +87,22 @@
     "rugged": false
    }
   }
+ },
+ {
+  "mint": "J2hFoWkCd61Fyh19XUYZYSTf8Dpm9WyepDQYffY7pump",
+  "symbol": "XGO",
+  "name": "XRP Global Order",
+  "headline": "Abbott Gets Pause of Elon Musk Communications Order on Appeal",
+  "t": 1793144410.1872494,
+  "entry": 0.000457,
+  "entry_liq": 56871.79,
+  "celeb": false,
+  "age_min": 16,
+  "h1": 711,
+  "top1": 6.1,
+  "top10": 22.1,
+  "insider": 0,
+  "lock": 100,
+  "cp": {}
  }
 ]
