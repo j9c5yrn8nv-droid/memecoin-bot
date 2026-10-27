@@ -24,6 +24,11 @@
     "ratio": 0.0088,
     "liq": 2395.72,
     "rugged": true
+   },
+   "6h": {
+    "ratio": 0.0087,
+    "liq": 2383.16,
+    "rugged": true
    }
   }
  },
