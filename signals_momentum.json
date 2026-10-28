@@ -16,7 +16,13 @@
   "lock": 100,
   "score": 56,
   "accel": 2.71,
-  "cp": {},
+  "cp": {
+   "15m": {
+    "ratio": 0.7065,
+    "liq": 17968.61,
+    "rugged": false
+   }
+  },
   "peak": 1.0
  }
 ]
