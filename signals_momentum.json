@@ -54,7 +54,7 @@
     "rugged": false
    }
   },
-  "peak": 1.7223
+  "peak": 2.1245
  },
  {
   "mint": "HDwZkNNh8Bt9oPP51xrPwGyKxDUR2YorHiAHGuiypump",
@@ -73,6 +73,7 @@
   "lock": 100,
   "score": 73,
   "accel": 3.89,
-  "cp": {}
+  "cp": {},
+  "peak": 1.0
  }
 ]
