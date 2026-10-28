@@ -130,5 +130,22 @@
     "rugged": true
    }
   }
+ },
+ {
+  "mint": "7K6GMuD2muHoSLuaCFNMY3FNzQuerrWuRerncQ8epump",
+  "symbol": "SI",
+  "name": "Super Investor",
+  "headline": "Tesla-SpaceX Merger: Investor Floats $500 Sweetener [2026]",
+  "t": 1793172824.759541,
+  "entry": 0.0002874,
+  "entry_liq": 46214.25,
+  "celeb": false,
+  "age_min": 21,
+  "h1": 568,
+  "top1": 11.4,
+  "top10": 28.5,
+  "insider": 0,
+  "lock": 100,
+  "cp": {}
  }
 ]
