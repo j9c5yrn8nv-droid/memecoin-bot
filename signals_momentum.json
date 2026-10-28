@@ -106,5 +106,24 @@
    }
   },
   "peak": 1.062
+ },
+ {
+  "mint": "FEXGegqeVm5vZurqyC7qsmkLqWspVV1ACb9bbLvcpump",
+  "symbol": "DUBBLE",
+  "name": "Dubble",
+  "headline": "momentum",
+  "t": 1793229214.3773513,
+  "entry": 0.0035678958873865702,
+  "entry_liq": 174706.2603,
+  "celeb": false,
+  "age_min": 491,
+  "h1": 61.598,
+  "top1": 2.6,
+  "top10": 3.5,
+  "insider": 0,
+  "lock": 100,
+  "score": 68,
+  "accel": 1.71,
+  "cp": {}
  }
 ]
