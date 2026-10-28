@@ -145,6 +145,11 @@
     "ratio": 0.0078,
     "liq": 3564.81,
     "rugged": true
+   },
+   "24h": {
+    "ratio": 0.0056,
+    "liq": 2753.74,
+    "rugged": true
    }
   }
  },
