@@ -1,1 +1,21 @@
-[]
+[
+ {
+  "mint": "MzUxrgP4k6huTD415pA9bKzBA8BvCgyu15TfbEnpump",
+  "symbol": "OpenBot",
+  "name": "OpenBot",
+  "headline": "momentum",
+  "t": 1793196990.527422,
+  "entry": 6.618480561181843e-05,
+  "entry_liq": 22318.8181,
+  "celeb": false,
+  "age_min": 399,
+  "h1": -9.62,
+  "top1": 18.1,
+  "top10": 36.3,
+  "insider": 0,
+  "lock": 100,
+  "score": 56,
+  "accel": 2.71,
+  "cp": {}
+ }
+]
