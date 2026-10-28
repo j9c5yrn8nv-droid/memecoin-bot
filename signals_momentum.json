@@ -47,7 +47,32 @@
   "lock": 100,
   "score": 75,
   "accel": 1.89,
-  "cp": {},
-  "peak": 1.3105
+  "cp": {
+   "15m": {
+    "ratio": 1.7223,
+    "liq": 109583.81,
+    "rugged": false
+   }
+  },
+  "peak": 1.7223
+ },
+ {
+  "mint": "HDwZkNNh8Bt9oPP51xrPwGyKxDUR2YorHiAHGuiypump",
+  "symbol": "QUBIT",
+  "name": "Qubit The Quantum Dog",
+  "headline": "momentum",
+  "t": 1793205114.5258098,
+  "entry": 8.29533667761851e-05,
+  "entry_liq": 25404.2666,
+  "celeb": false,
+  "age_min": 285,
+  "h1": -21.21,
+  "top1": 20.2,
+  "top10": 40.3,
+  "insider": 0,
+  "lock": 100,
+  "score": 73,
+  "accel": 3.89,
+  "cp": {}
  }
 ]
