@@ -169,7 +169,13 @@
   "top10": 49.5,
   "insider": 0,
   "lock": 100,
-  "cp": {}
+  "cp": {
+   "15m": {
+    "ratio": 0.9773,
+    "liq": 13925.37,
+    "rugged": false
+   }
+  }
  },
  {
   "mint": "MzUxrgP4k6huTD415pA9bKzBA8BvCgyu15TfbEnpump",
@@ -184,6 +190,29 @@
   "h1": 248,
   "top1": 11.8,
   "top10": 30.3,
+  "insider": 0,
+  "lock": 100,
+  "cp": {
+   "15m": {
+    "ratio": 1.1545,
+    "liq": 34114.24,
+    "rugged": false
+   }
+  }
+ },
+ {
+  "mint": "iwPkJ45T2JegPCrzq1hECwiB9oJow5PYm7xJ28Mpump",
+  "symbol": "SIB",
+  "name": "Super Intelligent Beauty",
+  "headline": "Oracle Cloud Infrastructure Brings NVIDIA, AMD, Intel, Google, Cerebras, SambaNova & Broadcom Under One Massive \u201cAI\u201d Roo",
+  "t": 1793175936.3711371,
+  "entry": 0.0002259,
+  "entry_liq": 39678.73,
+  "celeb": false,
+  "age_min": 19,
+  "h1": 424,
+  "top1": 9.3,
+  "top10": 27.4,
   "insider": 0,
   "lock": 100,
   "cp": {}
