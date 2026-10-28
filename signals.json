@@ -329,5 +329,22 @@
    }
   },
   "peak": 1.5939
+ },
+ {
+  "mint": "5w2VFC9LAmxAkujyu7PaFdniaXApc7LJW1WCZy4Spump",
+  "symbol": "SIB",
+  "name": "Super Intelligence Boobs",
+  "headline": "Trump May Tell Netanyahu And Eisenkot, 'friends, Come To Mar-a-Lago,' To Close Unity Deal",
+  "t": 1793216167.5115921,
+  "entry": 0.0001999,
+  "entry_liq": 36967.89,
+  "celeb": false,
+  "age_min": 35,
+  "h1": 345,
+  "top1": 10.4,
+  "top10": 12.1,
+  "insider": 0,
+  "lock": 100,
+  "cp": {}
  }
 ]
