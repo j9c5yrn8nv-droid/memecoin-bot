@@ -29,5 +29,24 @@
    }
   },
   "peak": 1.0
+ },
+ {
+  "mint": "AZdhikmyj6ibsejv7EjML9SfNmuiMvwDrKXTEU2zpump",
+  "symbol": "Something",
+  "name": "Believe in Something",
+  "headline": "momentum",
+  "t": 1793204139.4038534,
+  "entry": 0.0007484047213830142,
+  "entry_liq": 84470.8515,
+  "celeb": false,
+  "age_min": 1132,
+  "h1": -21.17,
+  "top1": 5.5,
+  "top10": 12.3,
+  "insider": 0,
+  "lock": 100,
+  "score": 75,
+  "accel": 1.89,
+  "cp": {}
  }
 ]
