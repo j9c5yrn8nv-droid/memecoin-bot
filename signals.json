@@ -63,7 +63,8 @@
     "liq": 4877.42,
     "rugged": false
    }
-  }
+  },
+  "peak": 1.0
  },
  {
   "mint": "28eGKk7GabX9m21A86ZeeqndeoWBi3bCYjf8moF3pump",
@@ -96,7 +97,8 @@
     "liq": 5758.46,
     "rugged": false
    }
-  }
+  },
+  "peak": 1.0
  },
  {
   "mint": "J2hFoWkCd61Fyh19XUYZYSTf8Dpm9WyepDQYffY7pump",
@@ -185,7 +187,8 @@
     "liq": 4161.21,
     "rugged": false
    }
-  }
+  },
+  "peak": 1.0
  },
  {
   "mint": "MzUxrgP4k6huTD415pA9bKzBA8BvCgyu15TfbEnpump",
@@ -213,7 +216,8 @@
     "liq": 46854.71,
     "rugged": false
    }
-  }
+  },
+  "peak": 1.2405
  },
  {
   "mint": "iwPkJ45T2JegPCrzq1hECwiB9oJow5PYm7xJ28Mpump",
