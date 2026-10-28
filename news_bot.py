@@ -429,8 +429,8 @@ GT = "https://api.geckoterminal.com/api/v2"
 MOM_FILE = "signals_momentum.json"
 CFG_M = {
     "enabled": True,
-    "min_age_min": 15,            # ilk dakikalarin kaosuna girme
-    "max_age_hours": 8,
+    "min_age_min": 10,            # ilk dakikalarin kaosuna girme
+    "max_age_hours": 24,
     "min_liquidity": 15_000,
     "min_vol_m15": 8_000,
     "min_accel": 1.5,             # son 5dk hacmi, 1 saatlik 5dk-ortalamasinin en az 1.5 kati
@@ -441,10 +441,11 @@ CFG_M = {
     "max_chg_m15": 80,            # zaten firlamis olanlara girme
     "max_chg_h1": 250,
     "max_signals_per_run": 3,
-    "pages": ["/networks/solana/new_pools?include=base_token&page=1",
-              "/networks/solana/new_pools?include=base_token&page=2",
-              "/networks/solana/trending_pools?include=base_token",
-              "/networks/solana/pools?include=base_token&sort=h24_volume_usd_desc"],
+    "pages": (["/networks/solana/new_pools?include=base_token&page=%d" % i for i in range(1, 7)]
+              + ["/networks/solana/trending_pools?include=base_token&duration=1h",
+                 "/networks/solana/trending_pools?include=base_token&duration=6h",
+                 "/networks/solana/pools?include=base_token&sort=h24_volume_usd_desc&page=1",
+                 "/networks/solana/pools?include=base_token&sort=h24_volume_usd_desc&page=2"]),
 }
 MOM_GROUPS = [("Skor >=70", lambda s: s.get("score", 0) >= 70),
               ("Skor <70", lambda s: s.get("score", 0) < 70),
@@ -514,8 +515,10 @@ def parse_pool(item, included):
 def momentum_check(pl):
     """(gecti_mi, skor, sebep). Erken: ivme var ama henuz firlamamis."""
     age_min = (time.time() - pl["created"]) / 60
-    if age_min < CFG_M["min_age_min"] or age_min > CFG_M["max_age_hours"] * 60:
-        return False, 0, "yas disinda"
+    if age_min < CFG_M["min_age_min"]:
+        return False, 0, "cok yeni"
+    if age_min > CFG_M["max_age_hours"] * 60:
+        return False, 0, "cok eski"
     if pl["price"] <= 0:
         return False, 0, "fiyat yok"
     if pl["liq"] < CFG_M["min_liquidity"]:
