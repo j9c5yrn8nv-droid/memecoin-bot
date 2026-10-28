@@ -290,5 +290,22 @@
    }
   },
   "peak": 1.3624
+ },
+ {
+  "mint": "D9NXzZxiJxgp2U69EDWJ1tJDMtGcEiWh2xGGY58Gpump",
+  "symbol": "Potpot",
+  "name": "Waddle World",
+  "headline": "Meta has a new AI pet app called Waddle World",
+  "t": 1793200225.486614,
+  "entry": 0.0001118,
+  "entry_liq": 27062.11,
+  "celeb": false,
+  "age_min": 47,
+  "h1": 160,
+  "top1": 13.4,
+  "top10": 32.0,
+  "insider": 0,
+  "lock": 100,
+  "cp": {}
  }
 ]
