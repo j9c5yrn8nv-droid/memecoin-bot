@@ -153,5 +153,39 @@
     "rugged": false
    }
   }
+ },
+ {
+  "mint": "4bjMPgeJYCUD1A44RJ4DHFY188SCd9vrMd6u71PDpump",
+  "symbol": "Grokbot",
+  "name": "Grokbot",
+  "headline": "Grok Bot can now pick up the phone and sort things out FOR YOU. Let it enjoy the hold music. Cancel a subscription, chec",
+  "t": 1793174999.8674295,
+  "entry": 3.167e-05,
+  "entry_liq": 14093.69,
+  "celeb": false,
+  "age_min": 69,
+  "h1": -8.16,
+  "top1": 23.7,
+  "top10": 49.5,
+  "insider": 0,
+  "lock": 100,
+  "cp": {}
+ },
+ {
+  "mint": "MzUxrgP4k6huTD415pA9bKzBA8BvCgyu15TfbEnpump",
+  "symbol": "OpenBot",
+  "name": "OpenBot",
+  "headline": "Asia Open: AI Lifts All Boats as the Fed Is Set to Enter the Ring",
+  "t": 1793175005.791115,
+  "entry": 0.0001443,
+  "entry_liq": 31290.25,
+  "celeb": false,
+  "age_min": 33,
+  "h1": 248,
+  "top1": 11.8,
+  "top10": 30.3,
+  "insider": 0,
+  "lock": 100,
+  "cp": {}
  }
 ]
