@@ -4,7 +4,7 @@ SIKI guvenlik kontrolunden gecenleri Telegram'a yollar. Alim/satim YAPMAZ.
 
 Calistirma: python news_bot.py   (GitHub Actions'ta her turda bir kez)
 """
-import os, re, json, time, html, statistics, requests
+import os, re, sys, json, time, html, random, asyncio, subprocess, statistics, requests
 from datetime import datetime
 from collections import Counter
 from urllib.parse import quote
@@ -32,6 +32,7 @@ CFG = {
     "reject_cache_hours": 6,
     "tokens_per_headline": 3,
     "max_messages_per_run": 6,
+    "news_enabled": False,          # False: haber modu KAPALI (3 raporda da kaybettirdi); sadece eski kayitlari takip eder
     "silent_mode": True,            # True: sadece kaydet ve olc (mesaj atma); False: mesaj at + kaydet
     "report_min_signals": 5,        # rapor icin 1 saatlik verisi olan en az sinyal
     "report_every_hours": 24,
@@ -233,7 +234,7 @@ def load_signals(path=None):
 
 def save_signals(sigs, path=None):
     with open(path or SIGNALS_FILE, "w") as f:
-        json.dump(sigs[-2000:], f, indent=1)
+        json.dump(sigs[-600:], f, separators=(",", ":"))
 
 
 def record_signal(sigs, h, p, metrics, celeb):
@@ -275,6 +276,9 @@ def update_signals(sigs):
     if not mints:
         return 0
     pairs = best_pairs_by_mint(mints)
+    if len(mints) >= 3 and not pairs:   # API hatasi olabilir: sahte "rug" kaydi yazma
+        print("olcum: fiyat verisi alinamadi, bu tur atlandi")
+        return 0
     n_upd = 0
     for s in sigs:
         p = pairs.get(s["mint"])
@@ -284,6 +288,11 @@ def update_signals(sigs):
         alive = (p is not None) and liq >= 0.2 * s["entry_liq"]
         if alive and (now - s["t"]) < 25 * 3600:
             s["peak"] = round(max(s.get("peak", 1.0), ratio), 4)
+        if (now - s["t"]) < 25 * 3600:          # fiyat yolu: [dakika, oran] (5 dk'da bir)
+            path = s.setdefault("path", [])
+            mins = round((now - s["t"]) / 60, 1)
+            if not path or mins - path[-1][0] >= 2.5:
+                path.append([mins, round(ratio, 4) if alive else 0])
         for name in due.get(s["mint"], []):
             s["cp"][name] = {"ratio": round(ratio, 4), "liq": liq, "rugged": not alive}
             n_upd += 1
@@ -431,23 +440,28 @@ CFG_M = {
     "enabled": True,
     "min_age_min": 10,            # ilk dakikalarin kaosuna girme
     "max_age_hours": 24,
-    "min_liquidity": 15_000,
-    "min_vol_m15": 8_000,
-    "min_accel": 1.5,             # son 5dk hacmi, 1 saatlik 5dk-ortalamasinin en az 1.5 kati
-    "min_buyers_m15": 40,
-    "min_buy_sell_ratio": 1.3,    # 15dk alis/satis islem orani
+    # GEVSEK esikler: sadece veri toplamak icin KAYDEDILIR (mesaj atilmaz)
+    "min_liquidity": 8_000,
+    "min_vol_m15": 4_000,
+    "min_accel": 1.2,
+    "min_buyers_m15": 25,
+    "min_buy_sell_ratio": 1.15,
     "min_chg_m5": 0,
     "min_chg_m15": 3,
     "max_chg_m15": 80,            # zaten firlamis olanlara girme
     "max_chg_h1": 250,
-    "max_signals_per_run": 3,
+    "max_signals_per_run": 5,
     "pages": (["/networks/solana/new_pools?include=base_token&page=%d" % i for i in range(1, 7)]
               + ["/networks/solana/trending_pools?include=base_token&duration=1h",
                  "/networks/solana/trending_pools?include=base_token&duration=6h",
                  "/networks/solana/pools?include=base_token&sort=h24_volume_usd_desc&page=1",
                  "/networks/solana/pools?include=base_token&sort=h24_volume_usd_desc&page=2"]),
 }
-MOM_GROUPS = [("Skor >=70", lambda s: s.get("score", 0) >= 70),
+CFG_M_STRICT = {"min_liquidity": 15_000, "min_vol_m15": 8_000, "min_accel": 1.5,
+                "min_buyers_m15": 40, "min_buy_sell_ratio": 1.3}   # SIKI esikler: mesaj atilir
+MOM_GROUPS = [("Siki esik", lambda s: s.get("tier") == "strict"),
+              ("Gevsek esik", lambda s: s.get("tier") == "loose"),
+              ("Skor >=70", lambda s: s.get("score", 0) >= 70),
               ("Skor <70", lambda s: s.get("score", 0) < 70),
               ("Yas <60dk", lambda s: s["age_min"] < 60),
               ("Yas >=60dk", lambda s: s["age_min"] >= 60),
@@ -543,6 +557,10 @@ def momentum_check(pl):
     score = (min(accel, 5) / 5 * 40 + min(pl["buyers15"], 200) / 200 * 30 +
              min(ratio, 3) / 3 * 20 + (10 if pl["buyers15"] > pl["sellers15"] * 1.2 else 0))
     pl["accel"], pl["ratio"] = accel, ratio
+    S = CFG_M_STRICT
+    pl["tier"] = "strict" if (pl["liq"] >= S["min_liquidity"] and pl["vol_m15"] >= S["min_vol_m15"]
+                              and accel >= S["min_accel"] and pl["buyers15"] >= S["min_buyers_m15"]
+                              and ratio >= S["min_buy_sell_ratio"]) else "loose"
     return True, round(score), "ok"
 
 
@@ -592,6 +610,7 @@ def momentum_message(pl, score, notes):
 
 
 def run_momentum(state):
+    state.setdefault("m_sent", [])
     sigs = load_signals(MOM_FILE)
     update_signals(sigs)
     pools = fetch_pools()
@@ -618,11 +637,12 @@ def run_momentum(state):
             print(f"momentum elendi {pl['symbol']}: {', '.join(bad)}")
             continue
         record_signal(sigs, {"title": "momentum"}, as_dex_pair(pl),
-                      {**metrics, "score": score, "accel": round(pl["accel"], 2)}, False)
-        send_telegram(momentum_message(pl, score, notes))
+                      {**metrics, "score": score, "accel": round(pl["accel"], 2), "tier": pl["tier"]}, False)
+        if pl["tier"] == "strict":
+            send_telegram(momentum_message(pl, score, notes))
         state["m_sent"].append(pl["mint"])
         sent += 1
-        print(f"MOMENTUM SINYALI: {pl['symbol']} skor {score}")
+        print(f"MOMENTUM SINYALI ({pl['tier']}): {pl['symbol']} skor {score}")
     state["m_sent"] = state["m_sent"][-500:]
     save_signals(sigs, MOM_FILE)
     maybe_report(sigs, state, title="ERKEN MOMENTUM OLCUM RAPORU", groups=MOM_GROUPS,
@@ -631,15 +651,253 @@ def run_momentum(state):
           ", ".join(f"{k}={v}" for k, v in why.most_common()))
 
 
+
+# =====================  CIKIS SIMULATORU  =====================
+# Kaydedilen fiyat yollarini farkli cikis kurallariyla "tekrar oynatir".
+COST_IN, COST_OUT = 0.015, 0.015     # kayma+komisyon varsayimi (giris ve cikista %1.5)
+SIM_HORIZON_MIN = 360                # ilk 6 saat
+SIM_MIN_SIGNALS = 8
+
+
+def sim_series(sig):
+    """Giris: yoldaki ILK noktadan (yaklasik 5dk gecikmeli, gercege daha yakin). -> [(dk, oran)]"""
+    path = [pt for pt in sig.get("path", []) if pt[0] <= SIM_HORIZON_MIN]
+    if len(path) < 3 or path[0][1] <= 0:
+        return None
+    t0, e = path[0]
+    return [(t - t0, r / e) for t, r in path]
+
+
+def rule_hold(minutes):
+    def f(series):
+        for t, r in series:
+            if t >= minutes:
+                return r
+        return series[-1][1]
+    return f
+
+
+def rule_tpsl(tp, sl):
+    def f(series):
+        for t, r in series[1:]:
+            if r <= sl:
+                return r            # stop: gozlenen fiyattan (bosluk riski dahil)
+            if r >= tp:
+                return tp           # kar al: limit emir varsayimi
+        return series[-1][1]
+    return f
+
+
+def rule_trail(trail, init_sl=0.8):
+    def f(series):
+        peak = 1.0
+        for t, r in series[1:]:
+            peak = max(peak, r)
+            if r <= max(init_sl, peak * (1 - trail)):
+                return r
+        return series[-1][1]
+    return f
+
+
+def rule_scaled(first_x, trail, init_sl=0.8):
+    """Yarisini first_x'te sat, kalanini takip eden stopla tut."""
+    def f(series):
+        half, peak = False, 1.0
+        for t, r in series[1:]:
+            peak = max(peak, r)
+            if not half and r >= first_x:
+                half = True
+            if r <= max(init_sl, peak * (1 - trail)):
+                return (0.5 * first_x + 0.5 * r) if half else r
+        last = series[-1][1]
+        return (0.5 * first_x + 0.5 * last) if half else last
+    return f
+
+
+SIM_RULES = [("Tut 1 saat", rule_hold(60)), ("Tut 6 saat", rule_hold(360)),
+             ("TP +%20 / SL -%15", rule_tpsl(1.2, 0.85)), ("TP +%30 / SL -%15", rule_tpsl(1.3, 0.85)),
+             ("TP +%50 / SL -%25", rule_tpsl(1.5, 0.75)), ("TP 2x / SL -%25", rule_tpsl(2.0, 0.75)),
+             ("Takip stop %15", rule_trail(0.15)), ("Takip stop %25", rule_trail(0.25)),
+             ("Yarisi 1.5x'te, kalan takip %25", rule_scaled(1.5, 0.25))]
+
+
+def build_sim_report(label, sigs):
+    now = time.time()
+    elig = [(s, sim_series(s)) for s in sigs if now - s["t"] >= SIM_HORIZON_MIN * 60]
+    elig = [x for x in elig if x[1]]
+    if len(elig) < SIM_MIN_SIGNALS:
+        return None
+    rows = []
+    for name, rule in SIM_RULES:
+        nets = [rule(ser) * (1 - COST_OUT) / (1 + COST_IN) for _, ser in elig]
+        rows.append((statistics.mean(nets), name, statistics.median(nets),
+                     sum(1 for v in nets if v > 1.0) / len(nets) * 100))
+    rows.sort(reverse=True)
+    lines = [f"<b>CIKIS SIMULATORU - {label}</b> (n={len(elig)} sinyal)",
+             "Giris ~5dk gecikmeli, %1.5+%1.5 maliyet dahil, ilk 6 saat. 1.00x = basabas.", ""]
+    for mean, name, med, win in rows:
+        lines.append(f"{name}: ort x{mean:.2f}, medyan x{med:.2f}, kazanan %{win:.0f}")
+    lines += ["", "UYARI: n kucukken en iyi gorunen kural sans eseri olabilir (asiri uyum). "
+              "Bir kurali ancak YENI sinyallerde de tutarsa ciddiye al. Yatirim tavsiyesi degil."]
+    return "\n".join(html.escape(l, quote=False).replace("&lt;b&gt;", "<b>").replace("&lt;/b&gt;", "</b>")
+                     for l in lines)
+
+
+def maybe_sim_report(state, groups):
+    if time.time() - state.get("last_report_sim", 0) < CFG["report_every_hours"] * 3600:
+        return
+    sent = 0
+    for label, sigs in groups:
+        rep = build_sim_report(label, sigs)
+        if rep:
+            send_telegram(rep)
+            sent += 1
+    if sent:
+        state["last_report_sim"] = time.time()
+        print("cikis simulatoru raporu gonderildi:", sent)
+
+
+
+# =====================  PUMP.FUN TARAYICI (SADECE OLCER, mesaj atmaz)  =====================
+# PumpPortal (ucretsiz, resmi olmayan) websocket'i ile bonding curve uzerindeki YENI tokenleri izler.
+# Sinyal kosullarini saglayanlari ve rastgele KONTROL grubunu kaydeder; sonra ikisinin sonucunu karsilastirir.
+PUMP_WS = "wss://pumpportal.fun/api/data"
+PUMP_FILE = "signals_pump.json"
+CFG_P = {
+    "enabled": True,
+    "listen_sec": 180,        # her turda bu kadar dinle
+    "obs_sec": 90,            # her tokeni olusumdan sonra en az bu kadar gozle
+    "min_buyers": 12,         # gozlem penceresinde farkli alici sayisi
+    "min_buy_sell": 1.5,      # alis/satis islem orani
+    "min_mc_growth": 1.1,     # piyasa degeri baslangica gore en az %10 artmis
+    "max_tokens": 200,        # tur basina izlenecek en fazla yeni token
+    "control_per_run": 2,     # her turda kontrol grubuna eklenecek rastgele token
+    "max_records_per_run": 6,
+}
+PUMP_GROUPS = [("SINYAL", lambda s: s.get("tier") == "signal"),
+               ("KONTROL (rastgele)", lambda s: s.get("tier") == "control"),
+               ("Alici >=20", lambda s: s.get("buyers", 0) >= 20),
+               ("Alici <20", lambda s: s.get("buyers", 0) < 20)]
+
+
+def ensure_websockets():
+    try:
+        import websockets  # noqa: F401
+        return True
+    except ImportError:
+        try:
+            subprocess.run([sys.executable, "-m", "pip", "install", "-q", "websockets"], check=True, timeout=120)
+            import websockets  # noqa: F401
+            return True
+        except Exception as e:
+            print("websockets kurulamadi:", e)
+            return False
+
+
+async def pump_listen(seconds, max_tokens):
+    import websockets
+    toks = {}
+    t_end = time.time() + seconds
+    async with websockets.connect(PUMP_WS, ping_interval=20, close_timeout=5) as ws:
+        await ws.send(json.dumps({"method": "subscribeNewToken"}))
+        while time.time() < t_end:
+            try:
+                raw = await asyncio.wait_for(ws.recv(), timeout=max(0.5, min(5, t_end - time.time())))
+            except asyncio.TimeoutError:
+                continue
+            try:
+                ev = json.loads(raw)
+            except Exception:
+                continue
+            mint, kind = ev.get("mint"), ev.get("txType")
+            if not mint:
+                continue
+            if kind == "create":
+                if len(toks) >= max_tokens or mint in toks:
+                    continue
+                mc = fnum(ev.get("marketCapSol"))
+                toks[mint] = {"t": time.time(), "creator": ev.get("traderPublicKey"), "name": ev.get("name"),
+                              "symbol": ev.get("symbol"), "mc0": mc, "mc": mc, "buyers": set(),
+                              "buys": 0, "sells": 0, "creator_sold": False}
+                await ws.send(json.dumps({"method": "subscribeTokenTrade", "keys": [mint]}))
+            elif kind in ("buy", "sell") and mint in toks:
+                t, who = toks[mint], ev.get("traderPublicKey")
+                if ev.get("marketCapSol") is not None:
+                    t["mc"] = fnum(ev.get("marketCapSol"))
+                if kind == "buy":
+                    t["buys"] += 1
+                    if who != t["creator"]:
+                        t["buyers"].add(who)
+                else:
+                    t["sells"] += 1
+                    if who == t["creator"]:
+                        t["creator_sold"] = True
+    return toks
+
+
+def pump_eval(toks, now):
+    sig, ctrl = [], []
+    for mint, t in toks.items():
+        if now - t["t"] < CFG_P["obs_sec"]:
+            continue                       # yeterince gozlenmedi
+        buyers = len(t["buyers"])
+        ratio = t["buys"] / max(t["sells"], 1)
+        growth = (t["mc"] / t["mc0"]) if t.get("mc0") else 0
+        m = {"buyers": buyers, "buys": t["buys"], "sells": t["sells"],
+             "creator_sold": t["creator_sold"], "growth": round(growth, 2)}
+        ok = (buyers >= CFG_P["min_buyers"] and ratio >= CFG_P["min_buy_sell"]
+              and not t["creator_sold"] and growth >= CFG_P["min_mc_growth"])
+        (sig if ok else ctrl).append((mint, t, m))
+    return sig, ctrl
+
+
+def run_pump(state):
+    state.setdefault("p_sent", [])
+    sigs = load_signals(PUMP_FILE)
+    update_signals(sigs)
+    if not ensure_websockets():
+        save_signals(sigs, PUMP_FILE)
+        return
+    try:
+        toks = asyncio.run(pump_listen(CFG_P["listen_sec"], CFG_P["max_tokens"]))
+    except Exception as e:
+        print("pump dinleme hatasi:", e)
+        save_signals(sigs, PUMP_FILE)
+        return
+    sig, ctrl = pump_eval(toks, time.time())
+    random.shuffle(ctrl)
+    picks = ([(x, "signal") for x in sig[:CFG_P["max_records_per_run"]]] +
+             [(x, "control") for x in ctrl[:CFG_P["control_per_run"]]])
+    picks = [(x, tier) for x, tier in picks if x[0] not in state["p_sent"]]
+    pairs = best_pairs_by_mint([x[0] for x, _ in picks]) if picks else {}
+    rec = {"signal": 0, "control": 0}
+    no_dex = 0
+    for (mint, t, m), tier in picks:
+        p = pairs.get(mint)
+        if not p or not p.get("priceUsd") or not (p.get("liquidity") or {}).get("usd"):
+            no_dex += 1
+            continue
+        p["pairCreatedAt"] = p.get("pairCreatedAt") or t["t"] * 1000
+        record_signal(sigs, {"title": "pump"}, p, {**m, "tier": tier}, False)
+        state["p_sent"].append(mint)
+        rec[tier] += 1
+    state["p_sent"] = state["p_sent"][-800:]
+    save_signals(sigs, PUMP_FILE)
+    maybe_report(sigs, state, title="PUMP.FUN OLCUM RAPORU", groups=PUMP_GROUPS,
+                 min_signals=8, key="last_report_p")
+    print(f"[PUMP] {len(toks)} yeni token izlendi, {len(sig) + len(ctrl)} degerlendirildi, "
+          f"{len(sig)} kosulu gecti | kaydedilen: sinyal={rec['signal']}, kontrol={rec['control']}, dexscreener yok={no_dex}")
+
+
 def main():
     state = load_state()
     sigs = load_signals()
     upd = update_signals(sigs)
     print(f"olcum: {len(sigs)} kayitli sinyal, {upd} kontrol noktasi guncellendi")
-    heads = fetch_headlines()
-    print(f"{len(heads)} taze haber bulundu")
+    heads = fetch_headlines() if CFG["news_enabled"] else []
+    print(f"{len(heads)} taze haber bulundu" + ("" if CFG["news_enabled"] else " (haber modu kapali)"))
     cache, sent_now, total_kw = {}, 0, 0
-    fresh = fresh_pairs()
+    fresh = fresh_pairs() if CFG["news_enabled"] else []
     print(f"ters tarama icin {len(fresh)} taze token")
     now = time.time()
     for h in heads:
@@ -695,12 +953,24 @@ def main():
             state["sent"] += [p["baseToken"]["address"] for p, *_ in picks]
             sent_now += 1
     save_signals(sigs)
-    maybe_report(sigs, state)
+    if CFG["news_enabled"] or any("24h" not in s["cp"] for s in sigs):   # kapaliyken sadece bitmemis sinyaller icin son rapor
+        maybe_report(sigs, state)
     if CFG_M["enabled"]:
         try:
             run_momentum(state)
         except Exception as e:
             print("momentum hatasi:", e)
+    if CFG_P["enabled"]:
+        try:
+            run_pump(state)
+        except Exception as e:
+            print("pump hatasi:", e)
+    try:
+        mom, main_s, pump_s = load_signals(MOM_FILE), load_signals("signals_main.json"), load_signals(PUMP_FILE)
+        maybe_sim_report(state, [("MOMENTUM", mom), ("PUMP", pump_s), ("HABER", sigs), ("ANA BOT", main_s),
+                                 ("TUMU", mom + sigs + main_s + pump_s)])
+    except Exception as e:
+        print("simulator hatasi:", e)
     save_state(state)
     print("bitti, gonderilen mesaj:", sent_now)
 
