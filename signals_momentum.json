@@ -31,6 +31,11 @@
     "ratio": 0.3173,
     "liq": 11587.06,
     "rugged": false
+   },
+   "24h": {
+    "ratio": 0.0995,
+    "liq": 5653.44,
+    "rugged": false
    }
   },
   "peak": 1.0
@@ -232,7 +237,13 @@
   "lock": 100.0,
   "score": 67,
   "accel": 2.27,
-  "cp": {},
+  "cp": {
+   "15m": {
+    "ratio": 0.9096,
+    "liq": 91364.58,
+    "rugged": false
+   }
+  },
   "peak": 1.0
  },
  {
