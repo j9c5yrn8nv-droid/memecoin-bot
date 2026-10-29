@@ -383,5 +383,22 @@
    }
   },
   "peak": 1.3927
+ },
+ {
+  "mint": "9QT2ue258kE1NYr7U9f3uGpcRNQHPB45ikxmmCdGpump",
+  "symbol": "RSTR",
+  "name": "Retardio Strategy",
+  "headline": "Fed Holds Rates, but Warsh Is Shrinking Its Rate-Setting Calendar",
+  "t": 1793234380.7072008,
+  "entry": 4.91e-05,
+  "entry_liq": 17055.67,
+  "celeb": false,
+  "age_min": 19,
+  "h1": 12.08,
+  "top1": 20.4,
+  "top10": 48.4,
+  "insider": 0,
+  "lock": 100,
+  "cp": {}
  }
 ]
