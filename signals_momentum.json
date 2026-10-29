@@ -214,5 +214,24 @@
    }
   },
   "peak": 1.342
+ },
+ {
+  "mint": "5JbRYEz844bwnKbGx4dRHhrJ6zjrJ194CKdDXtzwgaXo",
+  "symbol": "CPU",
+  "name": "CatProcessingUnit",
+  "headline": "momentum",
+  "t": 1793282457.3719003,
+  "entry": 0.00021546857827919337,
+  "entry_liq": 98094.5946,
+  "celeb": false,
+  "age_min": 820,
+  "h1": -8.532,
+  "top1": 22.1,
+  "top10": 39.7,
+  "insider": 0,
+  "lock": 100.0,
+  "score": 67,
+  "accel": 2.27,
+  "cp": {}
  }
 ]
