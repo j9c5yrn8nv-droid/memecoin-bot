@@ -10,7 +10,13 @@
   "celeb": false,
   "age_min": 2622,
   "h1": 3.92,
-  "cp": {},
-  "peak": 1.0033
+  "cp": {
+   "15m": {
+    "ratio": 1.0073,
+    "liq": 591357.68,
+    "rugged": false
+   }
+  },
+  "peak": 1.0073
  }
 ]
