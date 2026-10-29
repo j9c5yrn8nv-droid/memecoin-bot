@@ -480,7 +480,7 @@
     "rugged": false
    }
   },
-  "peak": 2.5138
+  "peak": 2.5618
  },
  {
   "mint": "9KhzhyM1BwgW6myZRcqdzQvemKjVrjck8kaevTkMpump",
@@ -501,6 +501,11 @@
    "15m": {
     "ratio": 1.2507,
     "liq": 59037.78,
+    "rugged": false
+   },
+   "1h": {
+    "ratio": 2.0892,
+    "liq": 77483.61,
     "rugged": false
    }
   },
