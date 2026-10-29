@@ -170,6 +170,11 @@
     "ratio": 0.7632,
     "liq": 80415.1,
     "rugged": false
+   },
+   "6h": {
+    "ratio": 0.5214,
+    "liq": 65752.7,
+    "rugged": false
    }
   },
   "peak": 1.379
@@ -200,6 +205,11 @@
    "1h": {
     "ratio": 1.0281,
     "liq": 292622.4,
+    "rugged": false
+   },
+   "6h": {
+    "ratio": 1.2469,
+    "liq": 331937.37,
     "rugged": false
    }
   },
