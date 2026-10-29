@@ -155,7 +155,8 @@
   "lock": 100.0,
   "score": 75,
   "accel": 3.16,
-  "cp": {}
+  "cp": {},
+  "peak": 1.379
  },
  {
   "mint": "Bv1a7cEj5aRnJQhMw4kRQqAFesMSd5LwcDnUzq52BMmr",
@@ -174,6 +175,7 @@
   "lock": 100,
   "score": 53,
   "accel": 1.67,
-  "cp": {}
+  "cp": {},
+  "peak": 1.1922
  }
 ]
