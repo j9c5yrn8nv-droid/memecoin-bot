@@ -447,5 +447,22 @@
    }
   },
   "peak": 1.6998
+ },
+ {
+  "mint": "A6PM7bxyWYiUxaEpRMHvuL4tY2jYVf8N46vXZ15Hpump",
+  "symbol": "VI",
+  "name": "Vice Inu",
+  "headline": "Walmart, Eli Lilly join growing pushback against OKX\u2013ICE tokenized stock plans",
+  "t": 1793286018.573407,
+  "entry": 0.0001625,
+  "entry_liq": 32974.44,
+  "celeb": false,
+  "age_min": 48,
+  "h1": 232,
+  "top1": 11.3,
+  "top10": 15.9,
+  "insider": 0,
+  "lock": 100,
+  "cp": {}
  }
 ]
