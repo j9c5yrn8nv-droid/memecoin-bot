@@ -510,5 +510,22 @@
    }
   },
   "peak": 2.1015
+ },
+ {
+  "mint": "GXQVzSaNGQiSy7Kxpvox3HE4bJujFa666E2wvbrrpump",
+  "symbol": "VOUCH",
+  "name": "Vouchmarket",
+  "headline": "Nvidia Is Getting Dangerously Close to Getting Surpassed by Apple in Market Cap. Here's the Better Growth Stock to Buy N",
+  "t": 1793297077.2242036,
+  "entry": 0.0001027,
+  "entry_liq": 25757.53,
+  "celeb": false,
+  "age_min": 18,
+  "h1": 119,
+  "top1": 13.4,
+  "top10": 37.9,
+  "insider": 0,
+  "lock": 100,
+  "cp": {}
  }
 ]
