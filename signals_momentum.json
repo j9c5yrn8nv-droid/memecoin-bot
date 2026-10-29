@@ -137,5 +137,43 @@
    }
   },
   "peak": 1.1643
+ },
+ {
+  "mint": "6pjRwzGg2QS1VSf6Z4TQZwyMxUysrUajkRmbbQ89P6KG",
+  "symbol": "FLOATER",
+  "name": "FLOATER",
+  "headline": "momentum",
+  "t": 1793235047.7976012,
+  "entry": 0.00019274762628798656,
+  "entry_liq": 94347.3256,
+  "celeb": false,
+  "age_min": 135,
+  "h1": 54.465,
+  "top1": 23.8,
+  "top10": 47.2,
+  "insider": 0,
+  "lock": 100.0,
+  "score": 75,
+  "accel": 3.16,
+  "cp": {}
+ },
+ {
+  "mint": "Bv1a7cEj5aRnJQhMw4kRQqAFesMSd5LwcDnUzq52BMmr",
+  "symbol": "FLOAT",
+  "name": "FLOAT",
+  "headline": "momentum",
+  "t": 1793235048.623722,
+  "entry": 0.001955978880616307,
+  "entry_liq": 298043.2529,
+  "celeb": false,
+  "age_min": 155,
+  "h1": 46.215,
+  "top1": 7.4,
+  "top10": 27.0,
+  "insider": 0,
+  "lock": 100,
+  "score": 53,
+  "accel": 1.67,
+  "cp": {}
  }
 ]
