@@ -481,5 +481,22 @@
    }
   },
   "peak": 2.5138
+ },
+ {
+  "mint": "9KhzhyM1BwgW6myZRcqdzQvemKjVrjck8kaevTkMpump",
+  "symbol": "HOUSEWORM",
+  "name": "Houseworming",
+  "headline": "Trump Moves Natalie Harp Into Ultra-Private White House Hideaway",
+  "t": 1793291234.341494,
+  "entry": 0.0003833,
+  "entry_liq": 52274.85,
+  "celeb": false,
+  "age_min": 35,
+  "h1": 499,
+  "top1": 7.0,
+  "top10": 10.5,
+  "insider": 0,
+  "lock": 100,
+  "cp": {}
  }
 ]
