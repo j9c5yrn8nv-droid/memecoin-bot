@@ -232,6 +232,26 @@
   "lock": 100.0,
   "score": 67,
   "accel": 2.27,
+  "cp": {},
+  "peak": 1.0
+ },
+ {
+  "mint": "ASX4GtetW337jwG2rLZaU84eY64rRCoWbf63yXQepump",
+  "symbol": "HERMIT",
+  "name": "Hermit",
+  "headline": "momentum",
+  "t": 1793282784.303919,
+  "entry": 5.349983529419323e-05,
+  "entry_liq": 20651.6393,
+  "celeb": false,
+  "age_min": 1333,
+  "h1": -7.018,
+  "top1": 21.7,
+  "top10": 42.7,
+  "insider": 0,
+  "lock": 100,
+  "score": 89,
+  "accel": 8.38,
   "cp": {}
  }
 ]
