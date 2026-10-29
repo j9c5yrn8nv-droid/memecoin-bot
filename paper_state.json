@@ -1,21 +1,17 @@
 {
- "cash": 901.7783938595486,
- "positions": [
-  {
-   "mint": "3LC3gGxSFKCPeEeo1ruQ4nHcaSBATZvS7srefotEpump",
-   "symbol": "USDF",
-   "entry": 0.048760599999999994,
-   "qty": 1025.4180629442626,
-   "size": 50.0,
-   "entry_liq": 588863.25,
-   "opened": 1793289597.932416
-  }
- ],
+ "cash": 902.5042062982799,
+ "positions": [],
  "closed": [
   {
    "symbol": "USDF",
    "pnl_pct": -96.44,
    "pnl_usd": -48.22,
+   "reason": "stop-loss"
+  },
+  {
+   "symbol": "USDF",
+   "pnl_pct": -98.55,
+   "pnl_usd": -49.27,
    "reason": "stop-loss"
   }
  ],
