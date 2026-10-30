@@ -47,6 +47,7 @@ CFG = {
     "max_top_holder_pct": 20,
     "max_top10_pct": 45,
     "min_lp_locked_pct": 70,
+    "max_insider_pct": 20,      # RugCheck "insider" isaretli cuzdanlarin toplam payi
 }
 DS = "https://api.dexscreener.com"
 RC = "https://api.rugcheck.xyz/v1"
@@ -152,6 +153,8 @@ def safety_ok(mint):
     r = get(f"{RC}/tokens/{mint}/report")
     if not r:
         return False, "rugcheck yanit yok"
+    if r.get("rugged"):
+        return False, "rugcheck: rug olmus"
     if r.get("mintAuthority") or r.get("freezeAuthority"):
         return False, "mint/freeze yetkisi acik"
     if any(x.get("level") == "danger" for x in r.get("risks") or []):
@@ -162,6 +165,9 @@ def safety_ok(mint):
         return False, f"buyuk cuzdan %{pcts[0]:.0f}"
     if sum(pcts[:10]) > CFG["max_top10_pct"]:
         return False, f"top10 %{sum(pcts[:10]):.0f}"
+    insider = sum(h.get("pct", 0) for h in holders if h.get("insider"))
+    if insider > CFG["max_insider_pct"]:
+        return False, f"insider cuzdanlar %{insider:.0f}"
     locks = [(m.get("lp") or {}).get("lpLockedPct", 0) for m in r.get("markets") or []]
     if not locks or max(locks) < CFG["min_lp_locked_pct"]:
         return False, "LP kilitli degil"
@@ -255,6 +261,8 @@ def run_once(s):
     manage_positions(s)
     held = {p["mint"] for p in s["positions"]}
     why_count = Counter()
+    # -%50'den fazla kaybettiren tokenin sembolu kara listeye girer (ayni sembolle cikan kopyalar dolandirici ailesi)
+    bad_symbols = {c["symbol"] for c in s["closed"] if c.get("pnl_pct", 0) <= -50}
     cands = candidates()
     for mint in cands:
         if len(s["positions"]) >= CFG["max_positions"] or s["cash"] < CFG["trade_size"]:
@@ -266,6 +274,9 @@ def run_once(s):
         p = best_pair(mint)
         if not p:
             why_count["fiyat/pair verisi yok"] += 1
+            continue
+        if p["baseToken"].get("symbol") in bad_symbols:
+            why_count["kara liste: kayip yapmis sembol"] += 1
             continue
         ok, why = market_ok(p)
         if not ok:
