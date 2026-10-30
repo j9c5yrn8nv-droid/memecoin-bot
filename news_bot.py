@@ -105,7 +105,7 @@ def save_state(s):
     cutoff = time.time() - CFG["reject_cache_hours"] * 3600
     s["rejected"] = {m: t for m, t in s["rejected"].items() if t > cutoff}
     with open(STATE_FILE, "w") as f:
-        json.dump(s, f, indent=1)
+        json.dump(s, f, separators=(",", ":"))
 
 
 def send_telegram(html_msg):
@@ -433,32 +433,22 @@ def build_message(h, picks):
 
 
 # =====================  ERKEN MOMENTUM TARAYICI  =====================
-# GeckoTerminal (ucretsiz, herkese acik) verisiyle: hacmi ve alicisi aniden artan yeni havuzlari bulur.
+# KESIF: GeckoTerminal (ucretsiz, limitli) -> sadece 3 istek/tur; yeni ve trend havuzlari izleme listesine ekler.
+# DEGERLENDIRME: DexScreener ile 10 dk - 24 saat arasi havuzlarin hacim/islem ivmesi olculur.
 GT = "https://api.geckoterminal.com/api/v2"
 MOM_FILE = "signals_momentum.json"
+GT_429 = False
 CFG_M = {
     "enabled": True,
-    "min_age_min": 10,            # ilk dakikalarin kaosuna girme
-    "max_age_hours": 24,
+    "min_age_min": 10, "max_age_hours": 24,
     # GEVSEK esikler: sadece veri toplamak icin KAYDEDILIR (mesaj atilmaz)
-    "min_liquidity": 8_000,
-    "min_vol_m15": 4_000,
-    "min_accel": 1.2,
-    "min_buyers_m15": 25,
-    "min_buy_sell_ratio": 1.15,
-    "min_chg_m5": 0,
-    "min_chg_m15": 3,
-    "max_chg_m15": 80,            # zaten firlamis olanlara girme
-    "max_chg_h1": 250,
-    "max_signals_per_run": 5,
-    "pages": (["/networks/solana/new_pools?include=base_token&page=%d" % i for i in range(1, 7)]
-              + ["/networks/solana/trending_pools?include=base_token&duration=1h",
-                 "/networks/solana/trending_pools?include=base_token&duration=6h",
-                 "/networks/solana/pools?include=base_token&sort=h24_volume_usd_desc&page=1",
-                 "/networks/solana/pools?include=base_token&sort=h24_volume_usd_desc&page=2"]),
+    "min_liquidity": 8_000, "min_vol_h1": 6_000, "min_accel": 1.2,
+    "min_txns_h1": 60, "min_buy_sell_ratio": 1.15,
+    "min_chg_m5": 0, "min_chg_h1": 3, "max_chg_h1": 120,
+    "max_signals_per_run": 5, "eval_per_run": 90, "watch_max": 600,
 }
-CFG_M_STRICT = {"min_liquidity": 15_000, "min_vol_m15": 8_000, "min_accel": 1.5,
-                "min_buyers_m15": 40, "min_buy_sell_ratio": 1.3}   # SIKI esikler: mesaj atilir
+CFG_M_STRICT = {"min_liquidity": 15_000, "min_vol_h1": 12_000, "min_accel": 1.5,
+                "min_txns_h1": 120, "min_buy_sell_ratio": 1.3}   # SIKI esikler: mesaj atilir
 MOM_GROUPS = [("Siki esik", lambda s: s.get("tier") == "strict"),
               ("Gevsek esik", lambda s: s.get("tier") == "loose"),
               ("Skor >=70", lambda s: s.get("score", 0) >= 70),
@@ -470,10 +460,13 @@ MOM_GROUPS = [("Siki esik", lambda s: s.get("tier") == "strict"),
 
 
 def gt_get(path):
+    global GT_429
     try:
         r = requests.get(GT + path, timeout=15, headers={"Accept": "application/json;version=20230302"})
         if r.status_code == 200:
             return r.json()
+        if r.status_code == 429:
+            GT_429 = True
         print("gecko hata kodu:", r.status_code)
     except Exception as e:
         print("gecko hatasi:", e)
@@ -487,15 +480,6 @@ def fnum(x, d=0.0):
         return d
 
 
-def pick(d, *keys):
-    """d icinden ilk bulunan anahtari dondurur (m15 yoksa m30 gibi)."""
-    d = d or {}
-    for k in keys:
-        if d.get(k) is not None:
-            return d[k]
-    return None
-
-
 def parse_pool(item, included):
     a = item.get("attributes") or {}
     tid = (((item.get("relationships") or {}).get("base_token") or {}).get("data") or {}).get("id", "")
@@ -503,106 +487,104 @@ def parse_pool(item, included):
     if not mint:
         return None
     tok = included.get(tid, {})
-    pool_name = a.get("name", "")
-    symbol = tok.get("symbol") or pool_name.split("/")[0].strip()
-    name = tok.get("name") or symbol
+    symbol = tok.get("symbol") or (a.get("name", "") or "").split("/")[0].strip()
     try:
         created = datetime.fromisoformat(a["pool_created_at"].replace("Z", "+00:00")).timestamp()
     except Exception:
         return None
-    tx, vol, chg = a.get("transactions") or {}, a.get("volume_usd") or {}, a.get("price_change_percentage") or {}
-    t15 = pick(tx, "m15", "m30") or {}
-    t5 = tx.get("m5") or {}
-    return {
-        "mint": mint, "symbol": symbol, "name": name, "pool": a.get("address", ""),
-        "created": created, "price": fnum(a.get("base_token_price_usd")),
-        "liq": fnum(a.get("reserve_in_usd")), "fdv": fnum(a.get("fdv_usd")),
-        "vol_m5": fnum(vol.get("m5")), "vol_m15": fnum(pick(vol, "m15", "m30")), "vol_h1": fnum(vol.get("h1")),
-        "buys15": fnum(t15.get("buys")), "sells15": fnum(t15.get("sells")),
-        "buyers15": fnum(t15.get("buyers")), "sellers15": fnum(t15.get("sellers")),
-        "buys5": fnum(t5.get("buys")), "sells5": fnum(t5.get("sells")),
-        "chg_m5": fnum(chg.get("m5")), "chg_m15": fnum(pick(chg, "m15", "m30")),
-        "chg_h1": fnum(chg.get("h1")), "chg_h6": fnum(chg.get("h6")),
-    }
+    return {"mint": mint, "symbol": symbol, "name": tok.get("name") or symbol,
+            "pool": a.get("address", ""), "created": created}
 
 
-def momentum_check(pl):
-    """(gecti_mi, skor, sebep). Erken: ivme var ama henuz firlamamis."""
-    age_min = (time.time() - pl["created"]) / 60
-    if age_min < CFG_M["min_age_min"]:
-        return False, 0, "cok yeni"
-    if age_min > CFG_M["max_age_hours"] * 60:
-        return False, 0, "cok eski"
-    if pl["price"] <= 0:
-        return False, 0, "fiyat yok"
-    if pl["liq"] < CFG_M["min_liquidity"]:
-        return False, 0, "likidite dusuk"
-    if pl["vol_m15"] < CFG_M["min_vol_m15"]:
-        return False, 0, "hacim dusuk"
-    per5 = pl["vol_h1"] / 12 if pl["vol_h1"] > 0 else 0
-    accel = (pl["vol_m5"] / per5) if per5 > 0 else 0
-    if accel < CFG_M["min_accel"]:
-        return False, 0, "ivme yok"
-    if pl["buyers15"] < CFG_M["min_buyers_m15"]:
-        return False, 0, "alici az"
-    ratio = pl["buys15"] / max(pl["sells15"], 1)
-    if ratio < CFG_M["min_buy_sell_ratio"]:
-        return False, 0, "satis baskisi"
-    if pl["chg_m5"] < CFG_M["min_chg_m5"]:
-        return False, 0, "son 5dk dusus"
-    if not CFG_M["min_chg_m15"] <= pl["chg_m15"] <= CFG_M["max_chg_m15"]:
-        return False, 0, "15dk degisim aralik disi"
-    if pl["chg_h1"] > CFG_M["max_chg_h1"]:
-        return False, 0, "zaten firlamis"
-    score = (min(accel, 5) / 5 * 40 + min(pl["buyers15"], 200) / 200 * 30 +
-             min(ratio, 3) / 3 * 20 + (10 if pl["buyers15"] > pl["sellers15"] * 1.2 else 0))
-    pl["accel"], pl["ratio"] = accel, ratio
-    S = CFG_M_STRICT
-    pl["tier"] = "strict" if (pl["liq"] >= S["min_liquidity"] and pl["vol_m15"] >= S["min_vol_m15"]
-                              and accel >= S["min_accel"] and pl["buyers15"] >= S["min_buyers_m15"]
-                              and ratio >= S["min_buy_sell_ratio"]) else "loose"
-    return True, round(score), "ok"
-
-
-def fetch_pools():
-    pools, seen = [], set()
-    for path in CFG_M["pages"]:
+def discover(state):
+    """Gecko'dan yeni/trend havuzlari izleme listesine ekler. 429 alirsak vazgecer."""
+    global GT_429
+    GT_429 = False
+    watch = state.setdefault("m_watch", {})
+    added = 0
+    for path in ["/networks/solana/new_pools?include=base_token&page=1",
+                 "/networks/solana/new_pools?include=base_token&page=2",
+                 "/networks/solana/trending_pools?include=base_token&duration=1h"]:
         data = gt_get(path)
-        time.sleep(1.2)  # kibar ol: ucretsiz API'nin dakika limiti var
+        time.sleep(2.5)
+        if GT_429:
+            break
         if not data:
             continue
         included = {i.get("id"): i.get("attributes") or {} for i in data.get("included") or []
                     if i.get("type") == "token"}
         for item in data.get("data") or []:
             pl = parse_pool(item, included)
-            if pl and pl["mint"] not in seen:
-                seen.add(pl["mint"])
-                pools.append(pl)
-    return pools
+            if pl and pl["mint"] not in watch:
+                watch[pl["mint"]] = {"t": pl["created"], "pool": pl["pool"], "sym": pl["symbol"]}
+                added += 1
+    cutoff = time.time() - (CFG_M["max_age_hours"] + 2) * 3600
+    for m in [m for m, v in watch.items() if v["t"] < cutoff]:
+        del watch[m]
+    if len(watch) > CFG_M["watch_max"]:
+        keep = sorted(watch.items(), key=lambda kv: -kv[1]["t"])[:CFG_M["watch_max"]]
+        state["m_watch"] = dict(keep)
+    return added
 
 
-def as_dex_pair(pl):
-    """record_signal'in bekledigi DexScreener bicimine cevir."""
-    return {"baseToken": {"address": pl["mint"], "symbol": pl["symbol"], "name": pl["name"]},
-            "priceUsd": str(pl["price"]), "pairCreatedAt": pl["created"] * 1000,
-            "liquidity": {"usd": pl["liq"]}, "priceChange": {"h1": pl["chg_h1"], "m5": pl["chg_m5"]},
-            "url": f"https://dexscreener.com/solana/{pl['pool']}"}
+def momentum_check_dx(p):
+    """DexScreener verisiyle ivme kontrolu: (gecti_mi, skor, sebep, ekstra)."""
+    created = p.get("pairCreatedAt")
+    if not created:
+        return False, 0, "yas bilinmiyor", None
+    age_min = (time.time() * 1000 - created) / 60000
+    if age_min < CFG_M["min_age_min"]:
+        return False, 0, "cok yeni", None
+    if age_min > CFG_M["max_age_hours"] * 60:
+        return False, 0, "cok eski", None
+    liq = (p.get("liquidity") or {}).get("usd", 0) or 0
+    vol, tx, chg = p.get("volume") or {}, p.get("txns") or {}, p.get("priceChange") or {}
+    v5, v1 = fnum(vol.get("m5")), fnum(vol.get("h1"))
+    t1 = tx.get("h1") or {}
+    buys, sells = fnum(t1.get("buys")), fnum(t1.get("sells"))
+    c5, c1 = fnum(chg.get("m5")), fnum(chg.get("h1"))
+    txns = buys + sells
+    per5 = v1 / 12 if v1 > 0 else 0
+    accel = (v5 / per5) if per5 > 0 else 0
+    ratio = buys / max(sells, 1)
+    if liq < CFG_M["min_liquidity"]:
+        return False, 0, "likidite dusuk", None
+    if v1 < CFG_M["min_vol_h1"]:
+        return False, 0, "hacim dusuk", None
+    if accel < CFG_M["min_accel"]:
+        return False, 0, "ivme yok", None
+    if txns < CFG_M["min_txns_h1"]:
+        return False, 0, "islem az", None
+    if ratio < CFG_M["min_buy_sell_ratio"]:
+        return False, 0, "satis baskisi", None
+    if c5 < CFG_M["min_chg_m5"]:
+        return False, 0, "son 5dk dusus", None
+    if not CFG_M["min_chg_h1"] <= c1 <= CFG_M["max_chg_h1"]:
+        return False, 0, "1s degisim aralik disi", None
+    S = CFG_M_STRICT
+    tier = "strict" if (liq >= S["min_liquidity"] and v1 >= S["min_vol_h1"] and accel >= S["min_accel"]
+                        and txns >= S["min_txns_h1"] and ratio >= S["min_buy_sell_ratio"]) else "loose"
+    score = (min(accel, 5) / 5 * 40 + min(txns, 400) / 400 * 30 + min(ratio, 3) / 3 * 20 +
+             (10 if c5 > 2 else 0))
+    return True, round(score), "ok", {"tier": tier, "accel": round(accel, 2), "txns_h1": int(txns),
+                                       "ratio": round(ratio, 2), "c5": c5, "c1": c1, "v5": v5, "v1": v1}
 
 
-def momentum_message(pl, score, notes):
+def momentum_message_dx(p, score, notes, x):
     e = html.escape
-    age = (time.time() - pl["created"]) / 60
-    x_ca = f"https://x.com/search?q={quote(pl['mint'])}&f=live"
-    x_tk = f"https://x.com/search?q={quote('$' + pl['symbol'])}&f=live"
+    mint, sym = p["baseToken"]["address"], p["baseToken"].get("symbol", "?")
+    age = (time.time() * 1000 - p["pairCreatedAt"]) / 60000
+    x_ca = f"https://x.com/search?q={quote(mint)}&f=live"
+    x_tk = f"https://x.com/search?q={quote('$' + sym)}&f=live"
     return "\n".join([
-        f"<b>ERKEN MOMENTUM: {e(pl['name'])} (${e(pl['symbol'])})</b>  skor {score}/100",
-        f"Yas: {age:.0f} dk | Likidite: {pl['liq']:,.0f}$ | FDV: {pl['fdv']:,.0f}$",
-        f"Hacim: son 5dk {pl['vol_m5']:,.0f}$ (ivme x{pl['accel']:.1f}), son 15dk {pl['vol_m15']:,.0f}$",
-        f"15dk: {pl['buyers15']:.0f} alici / {pl['sellers15']:.0f} satici, alis/satis islem orani {pl['ratio']:.1f}",
-        f"Fiyat: 5dk {pl['chg_m5']:+.0f}%, 15dk {pl['chg_m15']:+.0f}%, 1s {pl['chg_h1']:+.0f}%",
+        f"<b>ERKEN MOMENTUM: {e(p['baseToken'].get('name', sym))} (${e(sym)})</b>  skor {score}/100",
+        f"Yas: {age:.0f} dk | Likidite: {(p.get('liquidity') or {}).get('usd', 0):,.0f}$",
+        f"Hacim: son 5dk {x['v5']:,.0f}$ (ivme x{x['accel']:.1f}), son 1s {x['v1']:,.0f}$",
+        f"1s islem: {x['txns_h1']}, alis/satis orani {x['ratio']:.1f}",
+        f"Fiyat: 5dk {x['c5']:+.0f}%, 1s {x['c1']:+.0f}%",
         "Guvenlik: " + e("; ".join(notes)),
-        f"CA (dokununca kopyalanir; FOMO aramasina yapistir):\n<code>{e(pl['mint'])}</code>",
-        f"<a href=\"https://dexscreener.com/solana/{e(pl['pool'])}\">Grafik</a>"
+        f"CA (dokununca kopyalanir; FOMO aramasina yapistir):\n<code>{e(mint)}</code>",
+        f"<a href=\"{e(p.get('url', ''))}\">Grafik</a>"
         f" | <a href=\"{e(x_ca)}\">X'te CA ara</a> | <a href=\"{e(x_tk)}\">X'te ticker ara</a>",
         "",
         "Not: Momentum sinyali kar GARANTISI degildir, yeni tokenlerin cogu duser. "
@@ -613,41 +595,49 @@ def run_momentum(state):
     state.setdefault("m_sent", [])
     sigs = load_signals(MOM_FILE)
     update_signals(sigs)
-    pools = fetch_pools()
-    why = Counter()
-    cands = []
-    for pl in pools:
-        if pl["mint"] in state.setdefault("m_sent", []) or pl["mint"] in state["rejected"]:
-            why["zaten islendi"] += 1
+    added = discover(state)
+    watch, now = state["m_watch"], time.time()
+    skip = set(state["m_sent"]) | set(state["rejected"])
+    elig = [m for m, v in watch.items() if m not in skip and now - v["t"] >= CFG_M["min_age_min"] * 60]
+    elig.sort(key=lambda m: -watch[m]["t"])
+    elig = elig[:CFG_M["eval_per_run"]]
+    pairs = best_pairs_by_mint(elig) if elig else {}
+    why, cands = Counter(), []
+    for m in elig:
+        p = pairs.get(m)
+        if not p or not p.get("priceUsd"):
+            why["dexscreener verisi yok"] += 1
             continue
-        ok, score, reason = momentum_check(pl)
+        ok, score, reason, x = momentum_check_dx(p)
         if ok:
-            cands.append((score, pl))
+            cands.append((score, p, x))
         else:
             why[reason] += 1
-    cands.sort(key=lambda x: -x[0])
+    cands.sort(key=lambda c: -c[0])
     sent = 0
-    for score, pl in cands:
+    for score, p, x in cands:
         if sent >= CFG_M["max_signals_per_run"]:
             break
-        bad, notes, metrics = safety(pl["mint"], False, require_lp=False)
+        mint = p["baseToken"]["address"]
+        bad, notes, metrics = safety(mint, False, require_lp=False)
         if bad:
-            state["rejected"][pl["mint"]] = time.time()
+            state["rejected"][mint] = time.time()
             why["guvenlik: " + re.sub(r"[\d.%()]+", "", bad[0]).strip()] += 1
-            print(f"momentum elendi {pl['symbol']}: {', '.join(bad)}")
+            print(f"momentum elendi {p['baseToken'].get('symbol')}: {', '.join(bad)}")
             continue
-        record_signal(sigs, {"title": "momentum"}, as_dex_pair(pl),
-                      {**metrics, "score": score, "accel": round(pl["accel"], 2), "tier": pl["tier"]}, False)
-        if pl["tier"] == "strict":
-            send_telegram(momentum_message(pl, score, notes))
-        state["m_sent"].append(pl["mint"])
+        record_signal(sigs, {"title": "momentum"}, p,
+                      {**metrics, "score": score, "accel": x["accel"], "tier": x["tier"]}, False)
+        if x["tier"] == "strict":
+            send_telegram(momentum_message_dx(p, score, notes, x))
+        state["m_sent"].append(mint)
         sent += 1
-        print(f"MOMENTUM SINYALI ({pl['tier']}): {pl['symbol']} skor {score}")
+        print(f"MOMENTUM SINYALI ({x['tier']}): {p['baseToken'].get('symbol')} skor {score}")
     state["m_sent"] = state["m_sent"][-500:]
     save_signals(sigs, MOM_FILE)
     maybe_report(sigs, state, title="ERKEN MOMENTUM OLCUM RAPORU", groups=MOM_GROUPS,
                  min_signals=5, key="last_report_m")
-    print(f"[MOMENTUM] {len(pools)} havuz, {len(cands)} aday, {sent} sinyal | " +
+    print(f"[MOMENTUM] izleme listesi={len(watch)} (+{added} yeni), degerlendirilen={len(elig)}, "
+          f"aday={len(cands)}, sinyal={sent}, gecko429={'EVET' if GT_429 else 'hayir'} | " +
           ", ".join(f"{k}={v}" for k, v in why.most_common()))
 
 
@@ -868,25 +858,33 @@ def run_pump(state):
     random.shuffle(ctrl)
     picks = ([(x, "signal") for x in sig[:CFG_P["max_records_per_run"]]] +
              [(x, "control") for x in ctrl[:CFG_P["control_per_run"]]])
-    picks = [(x, tier) for x, tier in picks if x[0] not in state["p_sent"]]
-    pairs = best_pairs_by_mint([x[0] for x, _ in picks]) if picks else {}
-    rec = {"signal": 0, "control": 0}
-    no_dex = 0
+    # DexScreener yeni tokenleri biraz gec listeler: adaylari bekleme kuyruguna al, bulunca kaydet
+    pend = state.setdefault("p_pending", [])
+    known = {x["mint"] for x in pend} | set(state["p_sent"])
     for (mint, t, m), tier in picks:
-        p = pairs.get(mint)
-        if not p or not p.get("priceUsd") or not (p.get("liquidity") or {}).get("usd"):
-            no_dex += 1
-            continue
-        p["pairCreatedAt"] = p.get("pairCreatedAt") or t["t"] * 1000
-        record_signal(sigs, {"title": "pump"}, p, {**m, "tier": tier}, False)
-        state["p_sent"].append(mint)
-        rec[tier] += 1
+        if mint not in known:
+            pend.append({"mint": mint, "tier": tier, "m": m, "created": t["t"], "added": time.time()})
+    pairs = best_pairs_by_mint([x["mint"] for x in pend[:60]]) if pend else {}
+    keep, rec, lost = [], {"signal": 0, "control": 0}, 0
+    for x in pend:
+        p = pairs.get(x["mint"])
+        if p and p.get("priceUsd") and (p.get("liquidity") or {}).get("usd"):
+            p["pairCreatedAt"] = p.get("pairCreatedAt") or x["created"] * 1000
+            record_signal(sigs, {"title": "pump"}, p, {**x["m"], "tier": x["tier"]}, False)
+            state["p_sent"].append(x["mint"])
+            rec[x["tier"]] += 1
+        elif time.time() - x["added"] > 90 * 60:
+            lost += 1                       # 90 dk icinde DexScreener'da hic gorunmedi
+        else:
+            keep.append(x)
+    state["p_pending"] = keep[-200:]
+    no_dex = f"bekleyen={len(keep)}, kayboldu={lost}"
     state["p_sent"] = state["p_sent"][-800:]
     save_signals(sigs, PUMP_FILE)
     maybe_report(sigs, state, title="PUMP.FUN OLCUM RAPORU", groups=PUMP_GROUPS,
                  min_signals=8, key="last_report_p")
     print(f"[PUMP] {len(toks)} yeni token izlendi, {len(sig) + len(ctrl)} degerlendirildi, "
-          f"{len(sig)} kosulu gecti | kaydedilen: sinyal={rec['signal']}, kontrol={rec['control']}, dexscreener yok={no_dex}")
+          f"{len(sig)} kosulu gecti | kaydedilen: sinyal={rec['signal']}, kontrol={rec['control']} | {no_dex}")
 
 
 def main():
