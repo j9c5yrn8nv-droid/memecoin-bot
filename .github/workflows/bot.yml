@@ -27,7 +27,7 @@ jobs:
           curl -s "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
             -d chat_id="${TG_CHAT_ID}" \
             -d text="Test: bot calisiyor, Telegram baglantisi tamam."
-      - name: Dongu (5 dakikada bir tur, yaklasik 5.5 saat)
+      - name: Dongu
         env:
           TG_TOKEN: ${{ secrets.TG_TOKEN }}
           TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
@@ -42,5 +42,5 @@ jobs:
             git add -A
             git commit -m "state" || true
             git push || true
-            sleep 300
+            sleep 60
           done
