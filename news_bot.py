@@ -311,12 +311,14 @@ def stat_line(label, group, cp):
     return f"{label} (n={n}): giris ustu %{up:.0f}, +%30 %{big:.0f}, rug/cokus %{rug:.0f}, medyan x{med:.2f}"
 
 
-def build_report(sigs, title="HABER MODU OLCUM RAPORU (sessiz mod)", groups=None):
-    have_1h = [s for s in sigs if "1h" in s["cp"]]
+def build_report(sigs, title="HABER MODU OLCUM RAPORU (sessiz mod)", groups=None, exclude_tiers=()):
+    have_1h = [s for s in sigs if "1h" in s["cp"]]                      # kirilimlar: hepsi
+    core = [s for s in sigs if s.get("tier") not in exclude_tiers]      # ana rakamlar: reddedilenler haric
+    core_1h = [s for s in core if "1h" in s["cp"]]
     lines = [f"<b>{title}</b>",
-             f"Toplam kayitli sinyal: {len(sigs)} | 1s verisi olan: {len(have_1h)}", ""]
+             f"Toplam kayitli sinyal: {len(core)} | 1s verisi olan: {len(core_1h)}", ""]
     for name, _ in CHECKPOINTS[1:]:
-        ln = stat_line(f"{name} sonra", sigs, name)
+        ln = stat_line(f"{name} sonra", core, name)
         if ln:
             lines.append(ln)
     lines.append("")
@@ -331,7 +333,7 @@ def build_report(sigs, title="HABER MODU OLCUM RAPORU (sessiz mod)", groups=None
         ln = stat_line(label, [s for s in have_1h if pred(s)], "1h")
         if ln:
             lines.append(ln)
-    old = [s for s in sigs if time.time() - s["t"] >= 3600 and "peak" in s]
+    old = [s for s in core if time.time() - s["t"] >= 3600 and "peak" in s]
     if old:
         k = len(old)
         h30 = sum(1 for s in old if s["peak"] >= 1.3) / k * 100
@@ -350,13 +352,13 @@ def build_report(sigs, title="HABER MODU OLCUM RAPORU (sessiz mod)", groups=None
     return "\n".join(out)
 
 
-def maybe_report(sigs, state, title="HABER MODU OLCUM RAPORU (sessiz mod)", groups=None, min_signals=None, key="last_report"):
-    have_1h = [s for s in sigs if "1h" in s["cp"]]
+def maybe_report(sigs, state, title="HABER MODU OLCUM RAPORU (sessiz mod)", groups=None, min_signals=None, key="last_report", exclude_tiers=()):
+    have_1h = [s for s in sigs if "1h" in s["cp"] and s.get("tier") not in exclude_tiers]
     if len(have_1h) < (min_signals or CFG["report_min_signals"]):
         return
     if time.time() - state.get(key, 0) < CFG["report_every_hours"] * 3600:
         return
-    send_telegram(build_report(sigs, title, groups))
+    send_telegram(build_report(sigs, title, groups, exclude_tiers))
     state[key] = time.time()
     print("olcum raporu gonderildi:", title)
 
@@ -449,7 +451,8 @@ CFG_M = {
 }
 CFG_M_STRICT = {"min_liquidity": 15_000, "min_vol_h1": 12_000, "min_accel": 1.5,
                 "min_txns_h1": 120, "min_buy_sell_ratio": 1.3}   # SIKI esikler: mesaj atilir
-MOM_GROUPS = [("Siki esik", lambda s: s.get("tier") == "strict"),
+MOM_GROUPS = [("Guvenlik REDDETTI", lambda s: s.get("tier") == "reject"),
+              ("Siki esik", lambda s: s.get("tier") == "strict"),
               ("Gevsek esik", lambda s: s.get("tier") == "loose"),
               ("Skor >=70", lambda s: s.get("score", 0) >= 70),
               ("Skor <70", lambda s: s.get("score", 0) < 70),
@@ -607,12 +610,20 @@ def run_momentum(state):
         p = pairs.get(m)
         if not p or not p.get("priceUsd"):
             why["dexscreener verisi yok"] += 1
+            if m in watch:
+                watch[m]["nodata"] = watch[m].get("nodata", 0) + 1
+                if watch[m]["nodata"] >= 4:
+                    del watch[m]
             continue
         ok, score, reason, x = momentum_check_dx(p)
         if ok:
             cands.append((score, p, x))
         else:
             why[reason] += 1
+            if reason == "likidite dusuk" and m in watch:        # cop havuzlar izleme butcesini yemesin
+                watch[m]["low"] = watch[m].get("low", 0) + 1
+                if watch[m]["low"] >= 2:
+                    del watch[m]
     cands.sort(key=lambda c: -c[0])
     sent = 0
     for score, p, x in cands:
@@ -624,6 +635,9 @@ def run_momentum(state):
             state["rejected"][mint] = time.time()
             why["guvenlik: " + re.sub(r"[\d.%()]+", "", bad[0]).strip()] += 1
             print(f"momentum elendi {p['baseToken'].get('symbol')}: {', '.join(bad)}")
+            # guvenlik filtresi gercekten ise yariyor mu? Reddedilenleri de OLC (mesaj yok, ana rakamlara girmez)
+            record_signal(sigs, {"title": "momentum"}, p,
+                          {**(metrics or {}), "score": score, "accel": x["accel"], "tier": "reject"}, False)
             continue
         record_signal(sigs, {"title": "momentum"}, p,
                       {**metrics, "score": score, "accel": x["accel"], "tier": x["tier"]}, False)
@@ -635,7 +649,7 @@ def run_momentum(state):
     state["m_sent"] = state["m_sent"][-500:]
     save_signals(sigs, MOM_FILE)
     maybe_report(sigs, state, title="ERKEN MOMENTUM OLCUM RAPORU", groups=MOM_GROUPS,
-                 min_signals=5, key="last_report_m")
+                 min_signals=5, key="last_report_m", exclude_tiers=("reject",))
     print(f"[MOMENTUM] izleme listesi={len(watch)} (+{added} yeni), degerlendirilen={len(elig)}, "
           f"aday={len(cands)}, sinyal={sent}, gecko429={'EVET' if GT_429 else 'hayir'} | " +
           ", ".join(f"{k}={v}" for k, v in why.most_common()))
@@ -753,6 +767,7 @@ def maybe_sim_report(state, groups):
 # Sinyal kosullarini saglayanlari ve rastgele KONTROL grubunu kaydeder; sonra ikisinin sonucunu karsilastirir.
 PUMP_WS = "wss://pumpportal.fun/api/data"
 PUMP_FILE = "signals_pump.json"
+PUMP_STATS = {"create": 0, "trade": 0}
 CFG_P = {
     "enabled": True,
     "listen_sec": 180,        # her turda bu kadar dinle
@@ -789,6 +804,7 @@ def ensure_websockets():
 async def pump_listen(seconds, max_tokens):
     import websockets
     toks = {}
+    PUMP_STATS.update(create=0, trade=0)
     t_end = time.time() + seconds
     async with websockets.connect(PUMP_WS, ping_interval=20, close_timeout=5) as ws:
         await ws.send(json.dumps({"method": "subscribeNewToken"}))
@@ -807,12 +823,14 @@ async def pump_listen(seconds, max_tokens):
             if kind == "create":
                 if len(toks) >= max_tokens or mint in toks:
                     continue
+                PUMP_STATS["create"] += 1
                 mc = fnum(ev.get("marketCapSol"))
                 toks[mint] = {"t": time.time(), "creator": ev.get("traderPublicKey"), "name": ev.get("name"),
                               "symbol": ev.get("symbol"), "mc0": mc, "mc": mc, "buyers": set(),
                               "buys": 0, "sells": 0, "creator_sold": False}
                 await ws.send(json.dumps({"method": "subscribeTokenTrade", "keys": [mint]}))
             elif kind in ("buy", "sell") and mint in toks:
+                PUMP_STATS["trade"] += 1
                 t, who = toks[mint], ev.get("traderPublicKey")
                 if ev.get("marketCapSol") is not None:
                     t["mc"] = fnum(ev.get("marketCapSol"))
@@ -885,6 +903,9 @@ def run_pump(state):
     save_signals(sigs, PUMP_FILE)
     maybe_report(sigs, state, title="PUMP.FUN OLCUM RAPORU", groups=PUMP_GROUPS,
                  min_signals=8, key="last_report_p")
+    bl = [len(t["buyers"]) for t in toks.values() if time.time() - t["t"] >= CFG_P["obs_sec"]]
+    print(f"[PUMP-TANI] create olayi={PUMP_STATS['create']}, trade olayi={PUMP_STATS['trade']} | gozlenen tokenlerde "
+          f"alici maks={max(bl, default=0)}, >=3 alici={sum(1 for b in bl if b >= 3)}/{len(bl)}")
     print(f"[PUMP] {len(toks)} yeni token izlendi, {len(sig) + len(ctrl)} degerlendirildi, "
           f"{len(sig)} kosulu gecti | kaydedilen: sinyal={rec['signal']}, kontrol={rec['control']} | {no_dex}")
 
@@ -966,8 +987,11 @@ def main():
         except Exception as e:
             print("pump hatasi:", e)
     try:
-        mom, main_s, pump_s = load_signals(MOM_FILE), load_signals("signals_main.json"), load_signals(PUMP_FILE)
-        maybe_sim_report(state, [("MOMENTUM", mom), ("PUMP", pump_s), ("HABER", sigs), ("ANA BOT", main_s),
+        mom_all, main_s, pump_s = load_signals(MOM_FILE), load_signals("signals_main.json"), load_signals(PUMP_FILE)
+        mom = [s for s in mom_all if s.get("tier") != "reject"]
+        rej = [s for s in mom_all if s.get("tier") == "reject"]
+        maybe_sim_report(state, [("MOMENTUM", mom), ("MOMENTUM-GUVENLIK REDDETTI", rej), ("PUMP", pump_s),
+                                 ("HABER", sigs), ("ANA BOT", main_s),
                                  ("TUMU", mom + sigs + main_s + pump_s)])
     except Exception as e:
         print("simulator hatasi:", e)
