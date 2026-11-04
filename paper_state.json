@@ -1,6 +1,16 @@
 {
- "cash": 902.5042062982799,
- "positions": [],
+ "cash": 852.5042062982799,
+ "positions": [
+  {
+   "mint": "4xWRsdRkre5ibf3ZyS2eje6sUY8wGnmtSHx7gkGtpump",
+   "symbol": "VETO",
+   "entry": 0.00032490149999999995,
+   "qty": 153892.7952010071,
+   "size": 50.0,
+   "entry_liq": 53720.57,
+   "opened": 1793773103.8781526
+  }
+ ],
  "closed": [
   {
    "symbol": "USDF",
@@ -17,6 +27,7 @@
  ],
  "seen": [
   "9k6gfTLbDaUpx635kQaGTeDvzYs7hWdDW1MerpjYpump",
-  "3LC3gGxSFKCPeEeo1ruQ4nHcaSBATZvS7srefotEpump"
+  "3LC3gGxSFKCPeEeo1ruQ4nHcaSBATZvS7srefotEpump",
+  "4xWRsdRkre5ibf3ZyS2eje6sUY8wGnmtSHx7gkGtpump"
  ]
 }
