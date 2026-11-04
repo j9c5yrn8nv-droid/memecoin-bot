@@ -1,16 +1,6 @@
 {
- "cash": 852.5042062982799,
- "positions": [
-  {
-   "mint": "4xWRsdRkre5ibf3ZyS2eje6sUY8wGnmtSHx7gkGtpump",
-   "symbol": "VETO",
-   "entry": 0.00032490149999999995,
-   "qty": 153892.7952010071,
-   "size": 50.0,
-   "entry_liq": 53720.57,
-   "opened": 1793773103.8781526
-  }
- ],
+ "cash": 923.6882420752769,
+ "positions": [],
  "closed": [
   {
    "symbol": "USDF",
@@ -23,6 +13,12 @@
    "pnl_pct": -98.55,
    "pnl_usd": -49.27,
    "reason": "stop-loss"
+  },
+  {
+   "symbol": "VETO",
+   "pnl_pct": 42.37,
+   "pnl_usd": 21.18,
+   "reason": "kar al"
   }
  ],
  "seen": [
