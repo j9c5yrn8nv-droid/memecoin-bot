@@ -1,6 +1,16 @@
 {
- "cash": 923.6882420752769,
- "positions": [],
+ "cash": 873.6882420752769,
+ "positions": [
+  {
+   "mint": "3H9Qq3W9TLM5LmUU4wSUb9Ln7abcBE9AkeXGJpNDUSPR",
+   "symbol": "USPR",
+   "entry": 0.0013580699999999999,
+   "qty": 36816.95347073421,
+   "size": 50.0,
+   "entry_liq": 87714.73,
+   "opened": 1793838046.2031603
+  }
+ ],
  "closed": [
   {
    "symbol": "USDF",
@@ -24,6 +34,7 @@
  "seen": [
   "9k6gfTLbDaUpx635kQaGTeDvzYs7hWdDW1MerpjYpump",
   "3LC3gGxSFKCPeEeo1ruQ4nHcaSBATZvS7srefotEpump",
-  "4xWRsdRkre5ibf3ZyS2eje6sUY8wGnmtSHx7gkGtpump"
+  "4xWRsdRkre5ibf3ZyS2eje6sUY8wGnmtSHx7gkGtpump",
+  "3H9Qq3W9TLM5LmUU4wSUb9Ln7abcBE9AkeXGJpNDUSPR"
  ]
 }
