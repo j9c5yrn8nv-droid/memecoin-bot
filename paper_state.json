@@ -1,6 +1,16 @@
 {
- "cash": 925.4379677889735,
- "positions": [],
+ "cash": 875.4379677889735,
+ "positions": [
+  {
+   "mint": "ejrz94zR4A2ScS8LdvRaQih2xUxaE2ydreqUNKmpump",
+   "symbol": "ANTS",
+   "entry": 0.000675787,
+   "qty": 73987.80976846255,
+   "size": 50.0,
+   "entry_liq": 65345.57,
+   "opened": 1794065577.1728873
+  }
+ ],
  "closed": [
   {
    "symbol": "USDF",
@@ -31,7 +41,8 @@
   "9k6gfTLbDaUpx635kQaGTeDvzYs7hWdDW1MerpjYpump",
   "3LC3gGxSFKCPeEeo1ruQ4nHcaSBATZvS7srefotEpump",
   "4xWRsdRkre5ibf3ZyS2eje6sUY8wGnmtSHx7gkGtpump",
-  "3H9Qq3W9TLM5LmUU4wSUb9Ln7abcBE9AkeXGJpNDUSPR"
+  "3H9Qq3W9TLM5LmUU4wSUb9Ln7abcBE9AkeXGJpNDUSPR",
+  "ejrz94zR4A2ScS8LdvRaQih2xUxaE2ydreqUNKmpump"
  ],
  "last_report": 1794014771.5540078
 }
