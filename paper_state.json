@@ -1,6 +1,16 @@
 {
- "cash": 940.7220735797034,
- "positions": [],
+ "cash": 890.7220735797034,
+ "positions": [
+  {
+   "mint": "PgFtGGquvnv2zEkjG2N2QPvBTBrafuExGYEqahRpump",
+   "symbol": "BRUH",
+   "entry": 0.0007593214999999999,
+   "qty": 65848.26058527251,
+   "size": 50.0,
+   "entry_liq": 69256.44,
+   "opened": 1794121925.4565861
+  }
+ ],
  "closed": [
   {
    "symbol": "USDF",
@@ -38,7 +48,8 @@
   "3LC3gGxSFKCPeEeo1ruQ4nHcaSBATZvS7srefotEpump",
   "4xWRsdRkre5ibf3ZyS2eje6sUY8wGnmtSHx7gkGtpump",
   "3H9Qq3W9TLM5LmUU4wSUb9Ln7abcBE9AkeXGJpNDUSPR",
-  "ejrz94zR4A2ScS8LdvRaQih2xUxaE2ydreqUNKmpump"
+  "ejrz94zR4A2ScS8LdvRaQih2xUxaE2ydreqUNKmpump",
+  "PgFtGGquvnv2zEkjG2N2QPvBTBrafuExGYEqahRpump"
  ],
  "last_report": 1794101352.526177
 }
