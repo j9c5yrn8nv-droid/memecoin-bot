@@ -1,16 +1,6 @@
 {
- "cash": 890.7220735797034,
- "positions": [
-  {
-   "mint": "PgFtGGquvnv2zEkjG2N2QPvBTBrafuExGYEqahRpump",
-   "symbol": "BRUH",
-   "entry": 0.0007593214999999999,
-   "qty": 65848.26058527251,
-   "size": 50.0,
-   "entry_liq": 69256.44,
-   "opened": 1794121925.4565861
-  }
- ],
+ "cash": 962.2632455338756,
+ "positions": [],
  "closed": [
   {
    "symbol": "USDF",
@@ -40,6 +30,12 @@
    "symbol": "ANTS",
    "pnl_pct": 30.57,
    "pnl_usd": 15.28,
+   "reason": "kar al"
+  },
+  {
+   "symbol": "BRUH",
+   "pnl_pct": 43.08,
+   "pnl_usd": 21.54,
    "reason": "kar al"
   }
  ],
