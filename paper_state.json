@@ -1,16 +1,6 @@
 {
- "cash": 912.2632455338756,
- "positions": [
-  {
-   "mint": "tx41eAXzN6jHH22LSgF7eSxpTNvJXwcbrcGsbDrpump",
-   "symbol": "MYWAY",
-   "entry": 0.0006779185,
-   "qty": 73755.17853547292,
-   "size": 50.0,
-   "entry_liq": 65281.6,
-   "opened": 1794237308.390348
-  }
- ],
+ "cash": 954.3995790311914,
+ "positions": [],
  "closed": [
   {
    "symbol": "USDF",
@@ -47,6 +37,12 @@
    "pnl_pct": 43.08,
    "pnl_usd": 21.54,
    "reason": "kar al"
+  },
+  {
+   "symbol": "MYWAY",
+   "pnl_pct": -15.73,
+   "pnl_usd": -7.86,
+   "reason": "stop-loss"
   }
  ],
  "seen": [
