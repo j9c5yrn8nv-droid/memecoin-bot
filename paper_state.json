@@ -1,6 +1,16 @@
 {
- "cash": 962.2632455338756,
- "positions": [],
+ "cash": 912.2632455338756,
+ "positions": [
+  {
+   "mint": "tx41eAXzN6jHH22LSgF7eSxpTNvJXwcbrcGsbDrpump",
+   "symbol": "MYWAY",
+   "entry": 0.0006779185,
+   "qty": 73755.17853547292,
+   "size": 50.0,
+   "entry_liq": 65281.6,
+   "opened": 1794237308.390348
+  }
+ ],
  "closed": [
   {
    "symbol": "USDF",
@@ -45,7 +55,8 @@
   "4xWRsdRkre5ibf3ZyS2eje6sUY8wGnmtSHx7gkGtpump",
   "3H9Qq3W9TLM5LmUU4wSUb9Ln7abcBE9AkeXGJpNDUSPR",
   "ejrz94zR4A2ScS8LdvRaQih2xUxaE2ydreqUNKmpump",
-  "PgFtGGquvnv2zEkjG2N2QPvBTBrafuExGYEqahRpump"
+  "PgFtGGquvnv2zEkjG2N2QPvBTBrafuExGYEqahRpump",
+  "tx41eAXzN6jHH22LSgF7eSxpTNvJXwcbrcGsbDrpump"
  ],
  "last_report": 1794187843.8932536
 }
