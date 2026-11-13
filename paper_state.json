@@ -1,16 +1,6 @@
 {
- "cash": 904.3995790311914,
- "positions": [
-  {
-   "mint": "mBjWbrkGosa8RZopsghLZTF6KELiMUmEZh4mijqpump",
-   "symbol": "MEVS",
-   "entry": 0.0006203679999999999,
-   "qty": 80597.32287932324,
-   "size": 50.0,
-   "entry_liq": 58714.47,
-   "opened": 1794547055.6441958
-  }
- ],
+ "cash": 946.5151056218601,
+ "positions": [],
  "closed": [
   {
    "symbol": "USDF",
@@ -52,6 +42,12 @@
    "symbol": "MYWAY",
    "pnl_pct": -15.73,
    "pnl_usd": -7.86,
+   "reason": "stop-loss"
+  },
+  {
+   "symbol": "MEVS",
+   "pnl_pct": -15.77,
+   "pnl_usd": -7.88,
    "reason": "stop-loss"
   }
  ],
