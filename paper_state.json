@@ -1,6 +1,16 @@
 {
- "cash": 954.3995790311914,
- "positions": [],
+ "cash": 904.3995790311914,
+ "positions": [
+  {
+   "mint": "mBjWbrkGosa8RZopsghLZTF6KELiMUmEZh4mijqpump",
+   "symbol": "MEVS",
+   "entry": 0.0006203679999999999,
+   "qty": 80597.32287932324,
+   "size": 50.0,
+   "entry_liq": 58714.47,
+   "opened": 1794547055.6441958
+  }
+ ],
  "closed": [
   {
    "symbol": "USDF",
@@ -53,7 +63,8 @@
   "ejrz94zR4A2ScS8LdvRaQih2xUxaE2ydreqUNKmpump",
   "PgFtGGquvnv2zEkjG2N2QPvBTBrafuExGYEqahRpump",
   "tx41eAXzN6jHH22LSgF7eSxpTNvJXwcbrcGsbDrpump",
-  "4xgqefa5WcdHWKXzqvM9MRJqWYGaHVEUnpUL4Vq5pump"
+  "4xgqefa5WcdHWKXzqvM9MRJqWYGaHVEUnpUL4Vq5pump",
+  "mBjWbrkGosa8RZopsghLZTF6KELiMUmEZh4mijqpump"
  ],
  "last_report": 1794537917.2314923
 }
