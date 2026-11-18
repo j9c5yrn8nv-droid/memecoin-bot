@@ -1,6 +1,16 @@
 {
- "cash": 946.5151056218601,
- "positions": [],
+ "cash": 896.5151056218601,
+ "positions": [
+  {
+   "mint": "HCNhQCu5nrmWhSE3mo7fRU9eGiGLmi2fnE8omgLpump",
+   "symbol": "DCI",
+   "entry": 0.000657314,
+   "qty": 76067.14599110927,
+   "size": 50.0,
+   "entry_liq": 74402.45,
+   "opened": 1794993247.5120795
+  }
+ ],
  "closed": [
   {
    "symbol": "USDF",
@@ -60,7 +70,8 @@
   "PgFtGGquvnv2zEkjG2N2QPvBTBrafuExGYEqahRpump",
   "tx41eAXzN6jHH22LSgF7eSxpTNvJXwcbrcGsbDrpump",
   "4xgqefa5WcdHWKXzqvM9MRJqWYGaHVEUnpUL4Vq5pump",
-  "mBjWbrkGosa8RZopsghLZTF6KELiMUmEZh4mijqpump"
+  "mBjWbrkGosa8RZopsghLZTF6KELiMUmEZh4mijqpump",
+  "HCNhQCu5nrmWhSE3mo7fRU9eGiGLmi2fnE8omgLpump"
  ],
  "last_report": 1794970478.0266109
 }
