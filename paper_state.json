@@ -1,16 +1,6 @@
 {
- "cash": 896.5151056218601,
- "positions": [
-  {
-   "mint": "HCNhQCu5nrmWhSE3mo7fRU9eGiGLmi2fnE8omgLpump",
-   "symbol": "DCI",
-   "entry": 0.000657314,
-   "qty": 76067.14599110927,
-   "size": 50.0,
-   "entry_liq": 74402.45,
-   "opened": 1794993247.5120795
-  }
- ],
+ "cash": 963.379191888089,
+ "positions": [],
  "closed": [
   {
    "symbol": "USDF",
@@ -59,6 +49,12 @@
    "pnl_pct": -15.77,
    "pnl_usd": -7.88,
    "reason": "stop-loss"
+  },
+  {
+   "symbol": "DCI",
+   "pnl_pct": 33.73,
+   "pnl_usd": 16.86,
+   "reason": "kar al"
   }
  ],
  "seen": [
