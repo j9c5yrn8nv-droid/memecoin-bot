@@ -1,6 +1,16 @@
 {
- "cash": 963.379191888089,
- "positions": [],
+ "cash": 913.379191888089,
+ "positions": [
+  {
+   "mint": "D8kKQSi3MhCeXwNHX8gPiJPa4UFaRPsNfcXMAdVFpump",
+   "symbol": "ATX",
+   "entry": 1.6442999999999999,
+   "qty": 30.40807638508788,
+   "size": 50.0,
+   "entry_liq": 2852500.26,
+   "opened": 1795642616.998894
+  }
+ ],
  "closed": [
   {
    "symbol": "USDF",
@@ -67,7 +77,8 @@
   "tx41eAXzN6jHH22LSgF7eSxpTNvJXwcbrcGsbDrpump",
   "4xgqefa5WcdHWKXzqvM9MRJqWYGaHVEUnpUL4Vq5pump",
   "mBjWbrkGosa8RZopsghLZTF6KELiMUmEZh4mijqpump",
-  "HCNhQCu5nrmWhSE3mo7fRU9eGiGLmi2fnE8omgLpump"
+  "HCNhQCu5nrmWhSE3mo7fRU9eGiGLmi2fnE8omgLpump",
+  "D8kKQSi3MhCeXwNHX8gPiJPa4UFaRPsNfcXMAdVFpump"
  ],
  "last_report": 1795576400.837563
 }
