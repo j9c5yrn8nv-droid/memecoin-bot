@@ -1,16 +1,6 @@
 {
- "cash": 913.379191888089,
- "positions": [
-  {
-   "mint": "D8kKQSi3MhCeXwNHX8gPiJPa4UFaRPsNfcXMAdVFpump",
-   "symbol": "ATX",
-   "entry": 1.6442999999999999,
-   "qty": 30.40807638508788,
-   "size": 50.0,
-   "entry_liq": 2852500.26,
-   "opened": 1795642616.998894
-  }
- ],
+ "cash": 914.3487366791855,
+ "positions": [],
  "closed": [
   {
    "symbol": "USDF",
@@ -65,6 +55,12 @@
    "pnl_pct": 33.73,
    "pnl_usd": 16.86,
    "reason": "kar al"
+  },
+  {
+   "symbol": "ATX",
+   "pnl_pct": -98.06,
+   "pnl_usd": -49.03,
+   "reason": "stop-loss"
   }
  ],
  "seen": [
